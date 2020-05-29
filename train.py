@@ -30,7 +30,7 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Yolact Training Script')
-parser.add_argument('--batch_size', default=8, type=int,
+parser.add_argument('--batch_size', default=2, type=int,
                     help='Batch size for training')
 parser.add_argument('--resume', default=None, type=str,
                     help='Checkpoint state_dict file to resume training from. If this is "interrupt"'\
@@ -38,9 +38,9 @@ parser.add_argument('--resume', default=None, type=str,
 parser.add_argument('--start_iter', default=-1, type=int,
                     help='Resume training at this iter. If this is -1, the iteration will be'\
                          'determined from the file name.')
-parser.add_argument('--num_workers', default=4, type=int,
+parser.add_argument('--num_workers', default=2, type=int,
                     help='Number of workers used in dataloading')
-parser.add_argument('--cuda', default=True, type=str2bool,
+parser.add_argument('--cuda', default=False, type=str2bool,
                     help='Use CUDA to train model')
 parser.add_argument('--lr', '--learning_rate', default=None, type=float,
                     help='Initial learning rate. Leave as None to read this from the config.')
@@ -110,12 +110,14 @@ cur_lr = args.lr
 
 if torch.cuda.device_count() == 0:
     print('No GPUs detected. Exiting...')
-    exit(-1)
+    #exit(-1)
 
-if args.batch_size // torch.cuda.device_count() < 6:
-    if __name__ == '__main__':
-        print('Per-GPU batch size is less than the recommended limit for batch norm. Disabling batch norm.')
-    cfg.freeze_bn = True
+#
+# if args.batch_size // torch.cuda.device_count() < 6:
+#     if __name__ == '__main__':
+#         print('Per-GPU batch size is less than the recommended limit for batch norm. Disabling batch norm.')
+#     cfg.freeze_bn = True
+
 
 loss_types = ['B', 'C', 'M', 'P', 'D', 'E', 'S', 'I']
 
@@ -231,7 +233,7 @@ def train():
     
     # Initialize everything
     if not cfg.freeze_bn: yolact_net.freeze_bn() # Freeze bn so we don't kill our means
-    yolact_net(torch.zeros(1, 3, cfg.max_size, cfg.max_size).cuda())
+    yolact_net(torch.zeros(1, 3, cfg.max_size, cfg.max_size))
     if not cfg.freeze_bn: yolact_net.freeze_bn(True)
 
     # loss counters

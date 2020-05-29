@@ -76,10 +76,10 @@ class ConvertFromInts(object):
 class ToAbsoluteCoords(object):
     def __call__(self, image, masks=None, boxes=None, labels=None):
         height, width, channels = image.shape
-        boxes[:, 0] *= width
-        boxes[:, 2] *= width
-        boxes[:, 1] *= height
-        boxes[:, 3] *= height
+        np.multiply(boxes[:, 0], width, out=boxes[:, 0], casting="unsafe")
+        np.multiply(boxes[:, 2], width, out=boxes[:, 2], casting="unsafe")
+        np.multiply(boxes[:, 1], height, out=boxes[:, 1], casting="unsafe")
+        np.multiply(boxes[:, 3], height, out=boxes[:, 3], casting="unsafe")
 
         return image, masks, boxes, labels
 
@@ -87,10 +87,10 @@ class ToAbsoluteCoords(object):
 class ToPercentCoords(object):
     def __call__(self, image, masks=None, boxes=None, labels=None):
         height, width, channels = image.shape
-        boxes[:, 0] /= width
-        boxes[:, 2] /= width
-        boxes[:, 1] /= height
-        boxes[:, 3] /= height
+        np.divide(boxes[:, 0], width, out=boxes[:, 0], casting="unsafe")
+        np.divide(boxes[:, 2], width, out=boxes[:, 2], casting="unsafe")
+        np.divide(boxes[:, 1], height, out=boxes[:, 1], casting="unsafe")
+        np.divide(boxes[:, 3], height, out=boxes[:, 3], casting="unsafe")
 
         return image, masks, boxes, labels
 
@@ -164,8 +164,8 @@ class Resize(object):
                 masks = masks.transpose((2, 0, 1))
 
             # Scale bounding boxes (which are currently absolute coordinates)
-            boxes[:, [0, 2]] *= (width  / img_w)
-            boxes[:, [1, 3]] *= (height / img_h)
+            np.multiply(boxes[:, [0, 2]], (width  / img_w), out=boxes[:, [0, 2]], casting="unsafe")
+            np.multiply(boxes[:, [1, 3]] , height / img_h, out=boxes[:, [1, 3]], casting="unsafe")
 
         # Discard boxes that are smaller than we'd like
         w = boxes[:, 2] - boxes[:, 0]
@@ -623,8 +623,8 @@ class FastBaseTransform(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.mean = torch.Tensor(MEANS).float().cuda()[None, :, None, None]
-        self.std  = torch.Tensor( STD ).float().cuda()[None, :, None, None]
+        self.mean = torch.Tensor(MEANS).float()[None, :, None, None]
+        self.std  = torch.Tensor( STD ).float()[None, :, None, None]
         self.transform = cfg.backbone.transform
 
     def forward(self, img):

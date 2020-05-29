@@ -45,7 +45,7 @@ def parse_args(argv=None):
                         help='Trained state_dict file path to open. If "interrupt", this will open the interrupt file.')
     parser.add_argument('--top_k', default=5, type=int,
                         help='Further restrict the number of predictions to parse')
-    parser.add_argument('--cuda', default=True, type=str2bool,
+    parser.add_argument('--cuda', default=False, type=str2bool,
                         help='Use cuda to evaulate model')
     parser.add_argument('--fast_nms', default=True, type=str2bool,
                         help='Whether to use a faster, but not entirely correct version of NMS.')
@@ -177,7 +177,7 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
             color = COLORS[color_idx]
             if not undo_transform:
                 # The image might come in as RGB or BRG, depending
-                color = (color[2], color[1], color[0])
+                color = torch.Tensor(color).to(on_gpu).float() / 255.
             if on_gpu is not None:
                 color = torch.Tensor(color).to(on_gpu).float() / 255.
                 color_cache[on_gpu][color_idx] = color
@@ -240,7 +240,7 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
             score = scores[j]
 
             if args.display_bboxes:
-                cv2.rectangle(img_numpy, (x1, y1), (x2, y2), color, 1)
+                cv2.rectangle(img_numpy, (x1, y1), (x2, y2), (int(color[2]), int(color[1]), int(color[0])), 1)
 
             if args.display_text:
                 _class = cfg.dataset.class_names[classes[j]]
@@ -255,7 +255,7 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
                 text_pt = (x1, y1 - 3)
                 text_color = [255, 255, 255]
 
-                cv2.rectangle(img_numpy, (x1, y1), (x1 + text_w, y1 - text_h - 4), color, -1)
+                cv2.rectangle(img_numpy, (x1, y1), (x1 + text_w, y1 - text_h - 4), (int(color[2]), int(color[1]), int(color[0])), -1)
                 cv2.putText(img_numpy, text_str, text_pt, font_face, font_scale, text_color, font_thickness, cv2.LINE_AA)
             
     
@@ -593,7 +593,7 @@ def badhash(x):
     return x
 
 def evalimage(net:Yolact, path:str, save_path:str=None):
-    frame = torch.from_numpy(cv2.imread(path)).cuda().float()
+    frame = torch.from_numpy(cv2.imread(path)).float()
     batch = FastBaseTransform()(frame.unsqueeze(0))
     preds = net(batch)
 

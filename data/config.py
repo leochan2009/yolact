@@ -28,6 +28,7 @@ COLORS = ((244,  67,  54),
 MEANS = (103.94, 116.78, 123.68)
 STD   = (57.38, 57.12, 58.40)
 
+
 COCO_CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
                 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
@@ -54,7 +55,7 @@ COCO_LABEL_MAP = { 1:  1,  2:  2,  3:  3,  4:  4,  5:  5,  6:  6,  7:  7,  8:  8
                   74: 65, 75: 66, 76: 67, 77: 68, 78: 69, 79: 70, 80: 71, 81: 72,
                   82: 73, 84: 74, 85: 75, 86: 76, 87: 77, 88: 78, 89: 79, 90: 80}
 
-
+CUSTOM_LABEL_MAP = { 0:  0, 1:  1,  2:  2,  3:  3,  4:  4,  5:  5,  6:  6,  7:  7}
 
 # ----------------------- CONFIG CLASS ----------------------- #
 
@@ -127,6 +128,21 @@ dataset_base = Config({
     # If not specified, this just assumes category ids start at 1 and increase sequentially.
     'label_map': None
 })
+
+my_custom_dataset = dataset_base.copy({
+    'name': 'My Dataset',
+
+    'train_images': './data/BSCYolact',
+    'train_info':   './data/BSCYolact/via_export_coco.json',
+
+    'valid_images': './data/BSCYolact',
+    'valid_info':   './data/BSCYolact/via_export_coco.json',
+
+    'has_gt': True,
+    'class_names': ('kidneystone'),
+    'label_map': CUSTOM_LABEL_MAP
+})
+
 
 coco2014_dataset = dataset_base.copy({
     'name': 'COCO 2014',
@@ -657,8 +673,8 @@ yolact_base_config = coco_base_config.copy({
     'name': 'yolact_base',
 
     # Dataset stuff
-    'dataset': coco2017_dataset,
-    'num_classes': len(coco2017_dataset.class_names) + 1,
+    'dataset': my_custom_dataset,
+    'num_classes': len(my_custom_dataset.class_names) + 1,
 
     # Image Size
     'max_size': 550,
